@@ -1,0 +1,123 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ── People ───────────────────────────────────────────────
+enum Role {
+  SALES
+  DESIGN
+  PRODUCTION
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  role      Role
+  createdAt DateTime @default(now())
+
+  leads       Lead[]
+  orders      Order[]
+  attachments Attachment[]
+}
+
+// ── Stage 1: Sales finds a lead ─────────────────────────
+enum LeadSource {
+  INSTAGRAM
+  WHATSAPP
+  REFERRAL
+  OTHER
+}
+
+model Lead {
+  id           String     @id @default(cuid())
+  customerName String
+  contact      String
+  source       LeadSource
+  salesperson  User       @relation(fields: [salespersonId], references: [id])
+  salespersonId String
+  order        Order?     // becomes this once converted
+  createdAt    DateTime   @default(now())
+}
+
+// ── Stage 2: Lead becomes an Order ──────────────────────
+model Order {
+  id              String      @id @default(cuid())
+  lead            Lead        @relation(fields: [leadId], references: [id])
+  leadId          String      @unique
+  salesperson     User        @relation(fields: [salespersonId], references: [id])
+  salespersonId   String
+  deliveryDate    DateTime?
+  deliveryAddress String?
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+}
+
+// ── Made-to-Order Products ──────────────────────────────
+model Product {
+  id    String      @id @default(cuid())
+  name  String      // e.g. "Kids Half Set", "Romper Suit", "Party Frock"
+  items OrderItem[]
+}
+
+// ── Inventory / Raw Materials (Bows, Ribbons, Patches, etc.) ─
+model Inventory {
+  id                String              @id @default(cuid())
+  name              String              // e.g. "Bow", "Silk Ribbon", "Embroidered Patch"
+  color             String?             // e.g. "Pink", "Red", "Gold"
+  size              String?             // e.g. "Large", "Medium", "Small"
+  stockQty          Int                 @default(0) // Tracked stock level
+  orderItemMaterials OrderItemMaterial[]
+  createdAt         DateTime            @default(now())
+}
+
+// ── Stage 3 & 4: OrderItem linking Product + Multiple Consumed Materials ──
+enum ItemStatus {
+  PENDING_DESIGN
+  DESIGN_COMPLETE
+  COMPLETED
+}
+
+model OrderItem {
+  id          String              @id @default(cuid())
+  order       Order               @relation(fields: [orderId], references: [id])
+  orderId     String
+  product     Product             @relation(fields: [productId], references: [id])
+  productId   String
+  qty         Int                 @default(1)
+  status      ItemStatus          @default(PENDING_DESIGN)
+  materials   OrderItemMaterial[]
+  attachments Attachment[]
+  updatedAt   DateTime            @updatedAt
+}
+
+model OrderItemMaterial {
+  id          String    @id @default(cuid())
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  orderItemId String
+  inventory   Inventory @relation(fields: [inventoryId], references: [id])
+  inventoryId String
+  qty         Int       @default(1)
+}
+
+// ── Attachments ─────────────────────────────────────────
+enum AttachmentKind {
+  REFERENCE
+  DESIGN
+}
+
+model Attachment {
+  id          String         @id @default(cuid())
+  orderItem   OrderItem      @relation(fields: [orderItemId], references: [id])
+  orderItemId String
+  kind        AttachmentKind
+  fileUrl     String
+  uploadedBy  User           @relation(fields: [uploadedById], references: [id])
+  uploadedById String
+  createdAt   DateTime       @default(now())
+}
