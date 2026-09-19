@@ -61,7 +61,7 @@ model Order {
 // ── Made-to-Order Products ──────────────────────────────
 model Product {
   id    String      @id @default(cuid())
-  name  String      // e.g. "Kids Half Set", "Romper Suit", "Party Frock"
+  name  String      // e.g. "Kids Half Set", "Half Romper", "Party Frock"
   items OrderItem[]
 }
 

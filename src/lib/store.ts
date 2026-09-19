@@ -96,7 +96,7 @@ let memoryLeads: LeadItem[] = [
 
 let memoryProducts: ProductItem[] = [
   { id: 'prod_1', name: 'Kids Half Set' },
-  { id: 'prod_2', name: 'Romper Suit' },
+  { id: 'prod_2', name: 'Half Romper' },
   { id: 'prod_3', name: 'Party Frock' },
 ]
 

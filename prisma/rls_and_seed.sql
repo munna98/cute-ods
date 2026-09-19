@@ -152,7 +152,7 @@ ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, role = EXCLUDED.role;
 -- Demo Made-to-Order Products
 INSERT INTO public."Product" (id, name) VALUES
   ('prod_1', 'Kids Half Set'),
-  ('prod_2', 'Romper Suit'),
+  ('prod_2', 'Half Romper'),
   ('prod_3', 'Party Frock')
 ON CONFLICT (id) DO NOTHING;
 
